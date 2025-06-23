@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Preferences.h>
 #include <FastLED.h>
+#include "AppConfig.h"
 
 class ConfigManager
 {
@@ -12,19 +13,29 @@ private:
     static const char *STORAGE_NAMESPACE; // Nombre para la "carpeta" en memoria
 
 public:
-    static const int MAX_SLAVES = 8;
-
     struct SlaveConfig
     {
         char name[16]; // Nombre descriptivo del slave
         char ip[16];   // "192.168.4.10"
     };
 
+    struct EffectConfig
+    {
+        char name[16];
+        uint32_t color;
+        uint8_t intensity;
+    };
+
     struct Config
     {
         // Configuración de slaves
         uint8_t numSlaves;
+        uint8_t numModes;
         SlaveConfig slaves[MAX_SLAVES];
+        char modeNames[MAX_MODES][16]; // Por ejemplo: "Entrada", "Vals", etc.
+        // Configuración de efectos
+        uint8_t numEffects;
+        EffectConfig effects[8]; // Ajusta el tamaño según lo que necesites
     };
 
     ConfigManager();

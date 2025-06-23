@@ -1,13 +1,13 @@
-#include "WebConfig.h"
+#include "WebSlaves.h"
 #include "ConfigManager.h"
 
-void handleConfig(WebServer &server, ConfigManager &configManager)
+void handleSlaves(WebServer &server, ConfigManager &configManager)
 {
     if (server.method() == HTTP_POST)
     {
         ConfigManager::Config config = configManager.loadConfig();
         config.numSlaves = server.arg("numSlaves").toInt();
-        for (int i = 0; i < config.numSlaves && i < ConfigManager::MAX_SLAVES; ++i)
+        for (int i = 0; i < config.numSlaves && i < MAX_SLAVES; ++i)
         {
             String nameArg = "name" + String(i);
             String ipArg = "ip" + String(i);
@@ -18,13 +18,13 @@ void handleConfig(WebServer &server, ConfigManager &configManager)
         }
 
         // Limpia los datos de los slaves no usados
-        for (int i = config.numSlaves; i < ConfigManager::MAX_SLAVES; ++i)
+        for (int i = config.numSlaves; i < MAX_SLAVES; ++i)
         {
             config.slaves[i].name[0] = '\0';
             config.slaves[i].ip[0] = '\0';
         }
         configManager.saveConfig(config);
-        server.sendHeader("Location", "/config");
+        server.sendHeader("Location", "/slaves");
         server.send(303);
         return;
     }
@@ -53,7 +53,8 @@ void handleConfig(WebServer &server, ConfigManager &configManager)
         <body>
             <div class="config-container">
             <h1 style="font-size:1.5em;">Configuración de Slaves</h1>
-            <form method="POST" action="/config">
+            <form method="POST" action="/slaves" id="slavesForm" enctype="application/x-www-form-urlencoded" autocomplete="off">
+                <p>Configura los slaves que se conectarán al maestro. Puedes tener hasta 8 slaves.</p>
               
     )rawliteral";
 

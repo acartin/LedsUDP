@@ -2,6 +2,8 @@
 
 #include <Arduino.h>
 #include <String.h>
+#include "AppConfig.h"
+#include "ConfigManager.h"
 
 // Ejemplo de estructura básica para un modo y slave
 struct SlaveState
@@ -14,29 +16,23 @@ struct SlaveState
 class StateManager
 {
 public:
-    static const int MAX_SLAVES = 8;
-    static const int MAX_MODES = 6;
+    // static const int MAX_SLAVES = 8;
+    // static const int MAX_MODES = 6;
 
     // Por ejemplo: modos[modo][slave]
     SlaveState modos[MAX_MODES][MAX_SLAVES];
 
-    int modeNameToIndex(const String &modeName)
+    int modeNameToIndex(const String &modeName, const ConfigManager::Config &config)
     {
-        if (modeName == "Entrada")
-            return 0;
-        if (modeName == "Vals")
-            return 1;
-        if (modeName == "Ceremonia")
-            return 2;
-        if (modeName == "Fotobooth")
-            return 3;
-        if (modeName == "Crucero")
-            return 4;
-        if (modeName == "Beat")
-            return 5;
-        return 0; // Por defecto, Entrada
+        for (int i = 0; i < config.numModes; ++i)
+        {
+            if (modeName == config.modeNames[i])
+                return i;
+        }
+        return 0; // Por defecto, el primero
     }
 
-    void setIntensity(const String &mode, int slave, uint8_t intensity);
-    // ...otros setters/getters...
+    void setTapEffect(const String &mode, const String &effect, const String &color, int speed);
+
+    void setIntensity(const String &mode, int slave, uint8_t intensity, const ConfigManager::Config &config); // ...otros setters/getters...
 };

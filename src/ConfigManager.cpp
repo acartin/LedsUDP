@@ -34,6 +34,15 @@ ConfigManager::Config ConfigManager::loadConfig()
         config = createDefaultConfig();
         saveConfig(config);
     }
+
+    // Validar rangos seguros
+    if (config.numSlaves > MAX_SLAVES)
+        config.numSlaves = MAX_SLAVES;
+    if (config.numModes < 1)
+        config.numModes = 1;
+    if (config.numModes > MAX_MODES)
+        config.numModes = MAX_MODES;
+
     return config;
 }
 
@@ -47,7 +56,7 @@ ConfigManager::Config ConfigManager::createDefaultConfig()
 {
     Config config;
 
-        // Valores por defecto para slaves
+    // Valores por defecto para slaves
     config.numSlaves = 2;
     strncpy(config.slaves[0].name, "Slave 1", sizeof(config.slaves[0].name));
     config.slaves[0].name[sizeof(config.slaves[0].name) - 1] = '\0';
@@ -63,6 +72,42 @@ ConfigManager::Config ConfigManager::createDefaultConfig()
     {
         config.slaves[i].name[0] = '\0';
         config.slaves[i].ip[0] = '\0';
+    }
+
+    // Inicializa los modos por defecto
+    config.numModes = 3;
+    strncpy(config.modeNames[0], "Entrada", sizeof(config.modeNames[0]));
+    strncpy(config.modeNames[1], "Beat", sizeof(config.modeNames[1]));
+    strncpy(config.modeNames[2], "Manual", sizeof(config.modeNames[2]));
+    for (int i = 3; i < MAX_MODES; ++i)
+    {
+        config.modeNames[i][0] = '\0'; // Inicializa vacíos
+    }
+
+    // Inicializa los efectos por defecto
+    config.numEffects = 3;
+
+    strncpy(config.effects[0].name, "Strobe", sizeof(config.effects[0].name));
+    config.effects[0].name[sizeof(config.effects[0].name) - 1] = '\0';
+    config.effects[0].color = 0xFFFFFF;
+    config.effects[0].intensity = 128;
+
+    strncpy(config.effects[1].name, "Fire", sizeof(config.effects[1].name));
+    config.effects[1].name[sizeof(config.effects[1].name) - 1] = '\0';
+    config.effects[1].color = 0xFF3300;
+    config.effects[1].intensity = 128;
+
+    strncpy(config.effects[2].name, "Fade", sizeof(config.effects[2].name));
+    config.effects[2].name[sizeof(config.effects[2].name) - 1] = '\0';
+    config.effects[2].color = 0x00FF00;
+    config.effects[2].intensity = 128;
+
+    // El resto vacíos
+    for (int i = 3; i < 8; ++i)
+    {
+        config.effects[i].name[0] = '\0';
+        config.effects[i].color = 0;
+        config.effects[i].intensity = 0;
     }
 
     return config;

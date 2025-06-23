@@ -3,8 +3,9 @@
 #include "WebRoutes.h"
 #include "ConfigManager.h"
 #include "StateManager.h"
+#include <ESPmDNS.h>
 
-StateManager stateManager; // <-- Esta línea crea la instancia global
+StateManager stateManager;
 
 const char *ssid = "ESP32-LED-AP";
 const char *password = "12345678";
@@ -33,6 +34,15 @@ void setup()
     Serial.println("Access Point iniciado");
     Serial.print("IP address: ");
     Serial.println(WiFi.softAPIP());
+
+    if (MDNS.begin("iluminate"))
+    { // Cambia "maestroled" por el nombre que prefieras
+        Serial.println("mDNS responder iniciado: http://iluminate.local");
+    }
+    else
+    {
+        Serial.println("Error iniciando mDNS");
+    }
 
     registerWebRoutes(server);
     server.begin();
