@@ -4,6 +4,7 @@
 #include "ConfigManager.h"
 #include "ApiHandlers.h"
 #include "WebModos.h"
+#include "WebDebug.h"
 
 // Declara tu instancia global de ConfigManager (debe estar en Main.cpp y marcada como extern aquí si es global)
 extern ConfigManager configManager;
@@ -30,4 +31,7 @@ void registerWebRoutes(WebServer &server)
 
     server.on("/api/tap", HTTP_POST, [&server]()
               { handleApiTap(server); });
+
+    server.on("/debug", [&]()
+              { handleDebug(server, configManager); });
 }

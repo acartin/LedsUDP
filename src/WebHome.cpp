@@ -133,7 +133,7 @@ void handleRoot(WebServer &server)
                 <button id="tapBtn" class="tap-btn" onclick="sendTap()">TAP</button>
                 <a class="config-link" href="/slaves">Configurar Slaves</a>
                 <a class="config-link" href="/modos">Configurar Modos</a>
-               
+                <a class="config-link" href="/debug">Debug</a>
                 </div>                
             )rawliteral";
 
@@ -167,9 +167,9 @@ void handleRoot(WebServer &server)
 
         function updateIntensity(slaveId, value) {
             fetch('/api/intensity', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-                body: 'slave=' + slaveId + '&intensity=' + value + '&mode=' + encodeURIComponent(modeNames[selectedMode])
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'slave=' + slaveId + '&intensity=' + value + '&mode=' + encodeURIComponent(modeNames[selectedMode])
             });
         }
 

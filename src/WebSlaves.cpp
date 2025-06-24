@@ -6,8 +6,11 @@ void handleSlaves(WebServer &server, ConfigManager &configManager)
     if (server.method() == HTTP_POST)
     {
         ConfigManager::Config config = configManager.loadConfig();
-        config.numSlaves = server.arg("numSlaves").toInt();
-        for (int i = 0; i < config.numSlaves && i < MAX_SLAVES; ++i)
+        uint8_t prevNumSlaves = config.numSlaves;
+        uint8_t newNumSlaves = server.arg("numSlaves").toInt();
+
+        // Actualiza los datos de los slaves existentes o nuevos
+        for (int i = 0; i < newNumSlaves && i < MAX_SLAVES; ++i)
         {
             String nameArg = "name" + String(i);
             String ipArg = "ip" + String(i);
@@ -17,12 +20,32 @@ void handleSlaves(WebServer &server, ConfigManager &configManager)
             config.slaves[i].ip[sizeof(config.slaves[i].ip) - 1] = '\0';
         }
 
-        // Limpia los datos de los slaves no usados
+        // Si se agregaron slaves nuevos, inicialízalos
+        if (newNumSlaves > prevNumSlaves)
+        {
+            for (int i = prevNumSlaves; i < newNumSlaves && i < MAX_SLAVES; ++i)
+            {
+                configManager.initNewSlave(config, i);
+            }
+        }
+        // Si se eliminaron slaves, elimina y compacta la matriz
+        else if (newNumSlaves < prevNumSlaves)
+        {
+            for (int i = prevNumSlaves - 1; i >= newNumSlaves; --i)
+            {
+                configManager.removeSlave(config, i);
+            }
+        }
+
+        config.numSlaves = newNumSlaves;
+
+        // Limpia los datos de los slaves no usados (opcional, por seguridad)
         for (int i = config.numSlaves; i < MAX_SLAVES; ++i)
         {
             config.slaves[i].name[0] = '\0';
             config.slaves[i].ip[0] = '\0';
         }
+
         configManager.saveConfig(config);
         server.sendHeader("Location", "/slaves");
         server.send(303);

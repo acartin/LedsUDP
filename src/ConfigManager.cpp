@@ -112,3 +112,75 @@ ConfigManager::Config ConfigManager::createDefaultConfig()
 
     return config;
 }
+
+// Inicializa un nuevo slave en todos los modos con valores por defecto
+void ConfigManager::initNewSlave(Config &config, uint8_t slaveIdx)
+{
+    for (int m = 0; m < config.numModes; ++m)
+    {
+        config.slaveStates[m][slaveIdx].intensity = 128;
+        config.slaveStates[m][slaveIdx].color = 0xFFFFFF;
+    }
+}
+
+// Inicializa un nuevo modo para todos los slaves con valores por defecto
+void ConfigManager::initNewMode(Config &config, uint8_t modeIdx)
+{
+    for (int s = 0; s < config.numSlaves; ++s)
+    {
+        config.slaveStates[modeIdx][s].intensity = 128;
+        config.slaveStates[modeIdx][s].color = 0xFFFFFF;
+    }
+}
+
+// Elimina un slave y compacta la matriz
+void ConfigManager::removeSlave(Config &config, uint8_t slaveIdx)
+{
+    // Elimina de slaves[]
+    for (int i = slaveIdx; i < config.numSlaves - 1; ++i)
+    {
+        config.slaves[i] = config.slaves[i + 1];
+    }
+    config.slaves[config.numSlaves - 1].name[0] = '\0';
+    config.slaves[config.numSlaves - 1].ip[0] = '\0';
+
+    // Elimina de slaveStates
+    for (int m = 0; m < config.numModes; ++m)
+    {
+        for (int s = slaveIdx; s < config.numSlaves - 1; ++s)
+        {
+            config.slaveStates[m][s] = config.slaveStates[m][s + 1];
+        }
+        // Limpia el último
+        config.slaveStates[m][config.numSlaves - 1].intensity = 128;
+        config.slaveStates[m][config.numSlaves - 1].color = 0xFFFFFF;
+    }
+    config.numSlaves--;
+}
+
+// Elimina un modo y compacta la matriz
+void ConfigManager::removeMode(Config &config, uint8_t modeIdx)
+{
+    // Elimina de modeNames[]
+    for (int m = modeIdx; m < config.numModes - 1; ++m)
+    {
+        strncpy(config.modeNames[m], config.modeNames[m + 1], sizeof(config.modeNames[m]));
+    }
+    config.modeNames[config.numModes - 1][0] = '\0';
+
+    // Elimina de slaveStates
+    for (int m = modeIdx; m < config.numModes - 1; ++m)
+    {
+        for (int s = 0; s < config.numSlaves; ++s)
+        {
+            config.slaveStates[m][s] = config.slaveStates[m + 1][s];
+        }
+    }
+    // Limpia la última fila
+    for (int s = 0; s < config.numSlaves; ++s)
+    {
+        config.slaveStates[config.numModes - 1][s].intensity = 128;
+        config.slaveStates[config.numModes - 1][s].color = 0xFFFFFF;
+    }
+    config.numModes--;
+}

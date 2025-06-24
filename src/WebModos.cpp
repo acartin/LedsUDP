@@ -64,11 +64,30 @@ void handleModosPost(WebServer &server)
 {
     ConfigManager::Config config = configManager.loadConfig();
 
+    int prevNumModes = config.numModes;
     int numModes = server.arg("numModes").toInt();
     if (numModes < 1)
         numModes = 1;
     if (numModes > MAX_MODES)
         numModes = MAX_MODES;
+
+    // Si se agregan modos nuevos, inicialízalos
+    if (numModes > prevNumModes)
+    {
+        for (int i = prevNumModes; i < numModes; ++i)
+        {
+            configManager.initNewMode(config, i);
+        }
+    }
+    // Si se eliminaron modos, elimina y compacta la matriz
+    else if (numModes < prevNumModes)
+    {
+        for (int i = prevNumModes - 1; i >= numModes; --i)
+        {
+            configManager.removeMode(config, i);
+        }
+    }
+
     config.numModes = numModes;
 
     for (int i = 0; i < config.numModes; ++i)
