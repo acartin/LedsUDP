@@ -6,3 +6,5 @@ void handleApiIntensity(WebServer &server);
 void handleApiColor(WebServer &server);
 void handleApiOnOff(WebServer &server);
 void handleApiTap(WebServer &server);
+void handleApiGetModeState(WebServer &server);
+void handleApiSetMode(WebServer &server);

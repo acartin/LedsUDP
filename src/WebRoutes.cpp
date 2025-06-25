@@ -31,6 +31,16 @@ void registerWebRoutes(WebServer &server)
 
     server.on("/api/tap", HTTP_POST, [&server]()
               { handleApiTap(server); });
+    server.on("/api/get_mode_state", HTTP_GET, [&server]()
+              { handleApiGetModeState(server); });
+
+    server.on("/api/setMode", HTTP_POST, [&server]()
+              { handleApiSetMode(server); });
+
+    server.on("/api/color", HTTP_POST, [&server]()
+              { handleApiColor(server); });
+    server.on("/api/onoff", HTTP_POST, [&server]()
+              { handleApiOnOff(server); });
 
     server.on("/debug", [&]()
               { handleDebug(server, configManager); });

@@ -17,6 +17,7 @@ public:
     {
         uint8_t intensity;
         uint32_t color;
+        bool on;
     };
 
     struct SlaveConfig

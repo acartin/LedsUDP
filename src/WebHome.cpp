@@ -103,21 +103,10 @@ void handleRoot(WebServer &server)
         html += "<input type='range' min='0' max='255' value='128' class='slider' id='int" + String(i) + "' "
                                                                                                          "oninput=\"updateIntensity(" +
                 String(i) + ", this.value)\" onchange=\"updateIntensity(" + String(i) + ", this.value)\">";
-        html += "<input type='color' id='color" + String(i) + "' value='#ffffff' style='width:36px;height:28px;vertical-align:middle;'>";
+        html += "<input type='color' id='color" + String(i) + "' value='#ffffff' style='width:36px;height:28px;vertical-align:middle;' onchange=\"updateColor(" + String(i) + ", this.value)\">";
         html += "<button id='onoff" + String(i) + "' class='onoff-btn' onclick='toggle(" + String(i) + ")'>ON</button>";
         html += "</div></fieldset>";
     }
-
-    // Selector de modos como botones
-    // html += "<div id='modeSelector' style='margin-bottom:1em;'>";
-    // for (int i = 0; i < config.numModes; ++i)
-    //{
-    //    html += "<button class='mode-btn' id='modeBtn" + String(i) + "' onclick='selectMode(" + String(i) + ")'>" +
-    //            String(config.modeNames[i]) + "</button>";
-    // }
-    // html += "</div>";
-
-    // Opciones del boton TAP
 
     html += "<div id='tapOptions' style='display:none; margin-bottom:1em;'>";
     html += "<label for='tapEffect'>Efecto:</label>";
@@ -163,6 +152,19 @@ void handleRoot(WebServer &server)
             var btn = document.getElementById('modeBtn' + idx);
             if (btn) btn.classList.add('selected');
             onModeChange();
+
+            // --- Notifica al backend el cambio de modo ---
+            fetch('/api/setMode?mode=' + encodeURIComponent(modeNames[selectedMode]), {
+                method: 'POST'
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Recarga el estado del modo para refrescar la UI
+                    loadModeState(modeNames[selectedMode]);
+                } else {
+                 alert('Error cambiando de modo');
+                }
+            });
         }
 
         function updateIntensity(slaveId, value) {
@@ -173,16 +175,35 @@ void handleRoot(WebServer &server)
             });
         }
 
+        function updateColor(slaveId, value) {
+            fetch('/api/color', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'slave=' + slaveId + '&color=' + encodeURIComponent(value.replace('#','')) + '&mode=' + encodeURIComponent(modeNames[selectedMode])
+        });
+    }
+
+        function updateOnOff(slaveId, value) {
+            fetch('/api/onoff', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: 'slave=' + slaveId + '&on=' + (value ? '1' : '0') + '&mode=' + encodeURIComponent(modeNames[selectedMode])
+        });
+    }
+
         function toggle(id) {
             var btn = document.getElementById('onoff'+id);
-            if(btn.classList.contains('off')) {
-                btn.classList.remove('off');
-                btn.innerText = 'ON';
-            } else {
-                btn.classList.add('off');
-                btn.innerText = 'OFF';
-            }
+            var isOn = !btn.classList.contains('off');
+            if(isOn) {
+            btn.classList.add('off');
+            btn.innerText = 'OFF';
+            updateOnOff(id, 0);
+        } else {
+            btn.classList.remove('off');
+            btn.innerText = 'ON';
+            updateOnOff(id, 1);
         }
+    }
 
         function onModeChange() {
             var mode = modeNames[selectedMode];
@@ -191,6 +212,30 @@ void handleRoot(WebServer &server)
             tapBtn.style.display = (mode === 'Beat') ? 'block' : 'none';
             if (tapOptions) tapOptions.style.display = (mode === 'Beat') ? 'block' : 'none';
         }
+        // Cargar el estado del modo seleccionado
+        
+        function loadModeState(modeName) {
+    fetch('/api/get_mode_state?mode=' + encodeURIComponent(modeName))
+        .then(response => response.json())
+        .then(data => {
+            for (let i = 0; i < data.length; ++i) {
+                let slider = document.getElementById('int' + i);
+                let color = document.getElementById('color' + i);
+                let btn = document.getElementById('onoff' + i);
+                if (slider) slider.value = data[i].intensity;
+                if (color) color.value = data[i].color.padStart(7, '#');
+                if (btn) {
+                    if (data[i].on) {
+                        btn.classList.remove('off');
+                        btn.innerText = 'ON';
+                    } else {
+                        btn.classList.add('off');
+                        btn.innerText = 'OFF';
+                    }
+                }
+            }
+        });
+}
 
         function sendTap() {
             fetch('/api/tap', {
@@ -205,6 +250,7 @@ void handleRoot(WebServer &server)
         window.onload = function() {
             selectMode(0);
             onModeChange();
+            loadModeState(modeNames[selectedMode]);
         };
     </script>
 </body>
